@@ -13,32 +13,40 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
-    # 🔥 PostgreSQL
+    # PostgreSQL
     DATABASE_URL: str
 
     # Payment
-    RAZORPAY_KEY_ID: str = ""
+    RAZORPAY_KEY_ID:     str = ""
     RAZORPAY_KEY_SECRET: str = ""
 
     # SMS
-    MSG91_AUTH_KEY: str = ""
+    MSG91_AUTH_KEY:    str = ""
     MSG91_TEMPLATE_ID: str = ""
-    MSG91_SENDER_ID: str = "HOTBKG"
+    MSG91_SENDER_ID:   str = "HOTBKG"
 
-    # Email
+    # Email — SendGrid
     SENDGRID_API_KEY: str = ""
-    FROM_EMAIL: str = "noreply@hotelapp.com"
+    FROM_EMAIL:       str = "noreply@hotelapp.com"
+
+    # Email — SMTP (Gmail fallback)
+    SMTP_HOST:      str = "smtp.gmail.com"
+    SMTP_PORT:      int = 587
+    SMTP_USER:      str = ""
+    SMTP_PASSWORD:  str = ""
+    SMTP_FROM_NAME: str = "HotelBook"
 
     # Firebase
     FIREBASE_SERVER_KEY: str = ""
 
     # CORS
-    FRONTEND_URL: str = "http://localhost:3000"
+    FRONTEND_URL:    str = "http://localhost:3000"
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
 
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "ignore"   # ← unknown .env fields ignore karo
 
     def get_allowed_origins(self) -> List[str]:
         return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
