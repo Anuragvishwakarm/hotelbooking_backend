@@ -258,9 +258,32 @@ def cancel_my_booking(
         raise HTTPException(status_code=403, detail="Access denied.")
 
     try:
-        return cancel_booking(db, booking, current_user, reason=payload.reason)
+        cancelled = cancel_booking(db, booking, current_user, reason=payload.reason)
     except InvalidBookingError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+    # ── Send cancellation email ───────────────────────────────────────────
+    try:
+        from app.utils.email import send_booking_cancellation
+        from app.models.hotel import Hotel
+        import threading, asyncio
+
+        hotel      = db.query(Hotel).filter(Hotel.id == cancelled.hotel_id).first()
+        guest_user = db.query(User).filter(User.id == cancelled.guest_user_id).first()
+
+        def _send():
+            loop = asyncio.new_event_loop()
+            loop.run_until_complete(
+                send_booking_cancellation(cancelled, hotel, guest_user)
+            )
+            loop.close()
+
+        threading.Thread(target=_send, daemon=True).start()
+    except Exception as _e:
+        pass
+    # ── Email block end ───────────────────────────────────────────────────
+
+    return cancelled
 
 
 @router.post("/{booking_id}/checkin", response_model=BookingResponse)
